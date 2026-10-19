@@ -2,64 +2,84 @@ import SwiftUI
 
 struct ContentView: View {
     let model: USBMonitorViewModel
+    @State private var isAddingDevice = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("USB Device Monitor")
-                .font(.title2)
-            USBDeviceTable(devices: model.devices)
-            USBMonitorStatus(isMonitoring: model.isMonitoring, errorMessage: model.errorMessage)
+            Text("Registered USB Devices").font(.title2)
+            RegisteredDeviceTable(model: model)
+            Button("Add USB Device") { isAddingDevice = true }
+                .disabled(!model.canEditRegistrations)
+            RegistrationStatus(model: model)
         }
         .padding()
         .frame(minWidth: 650, minHeight: 320)
+        .sheet(isPresented: $isAddingDevice) {
+            AddUSBDeviceView(model: model)
+        }
     }
 }
 
-private struct USBDeviceTable: View {
-    let devices: [USBDevice]
+private struct RegisteredDeviceTable: View {
+    let model: USBMonitorViewModel
 
     var body: some View {
-        Table(devices) {
-            TableColumn("USB Device", value: \.name)
-            TableColumn("Vendor ID") { device in
-                Text(device.vendorIDText).monospaced()
+        Table(model.registeredDevices) {
+            TableColumn("USB Device") { device in
+                Text(device.registration.deviceName)
             }
-            .width(min: 85, ideal: 100)
-            TableColumn("Product ID") { device in
-                Text(device.productIDText).monospaced()
+            TableColumn("Connection Status") { device in
+                Text(device.isConnected ? "Connected" : "Disconnected")
             }
-            .width(min: 85, ideal: 100)
-            TableColumn("Connection Status") { _ in
-                Text("Connected")
+            .width(min: 135, ideal: 160)
+            TableColumn("Delete") { device in
+                Button {
+                    model.remove(device.id)
+                } label: {
+                    Image(systemName: "trash")
+                }
+                .buttonStyle(.borderless)
+                .accessibilityLabel("Remove \(device.registration.deviceName)")
+                .help("Remove this registration")
+                .disabled(!model.canEditRegistrations)
+                .frame(maxWidth: .infinity, alignment: .trailing)
             }
-            .width(min: 135, ideal: 150)
+            .width(60)
         }
         .overlay {
-            if devices.isEmpty {
-                Text("No USB devices listed")
+            if model.registeredDevices.isEmpty {
+                Text(model.isStorageReady
+                     ? "No registered devices. Choose Add USB Device to get started."
+                     : "No registrations loaded.")
                     .foregroundStyle(.secondary)
+                    .padding()
                     .allowsHitTesting(false)
             }
         }
     }
 }
 
-private struct USBMonitorStatus: View {
-    let isMonitoring: Bool
-    let errorMessage: String?
+private struct RegistrationStatus: View {
+    let model: USBMonitorViewModel
 
     var body: some View {
-        if let errorMessage {
-            Text(errorMessage)
-                .foregroundStyle(.red)
-                .textSelection(.enabled)
-        } else {
-            Text(isMonitoring ? "Monitoring USB connections automatically." : "USB monitoring is stopped.")
-                .foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: 6) {
+            if let error = model.storageError {
+                Text(error).foregroundStyle(.red).textSelection(.enabled)
+            }
+            if let error = model.errorMessage {
+                Text(error).foregroundStyle(.red).textSelection(.enabled)
+            }
+            if model.isSaving {
+                Text("Saving registration…").foregroundStyle(.secondary)
+            } else if !model.isStorageReady && model.storageError == nil {
+                Text("Loading registrations…").foregroundStyle(.secondary)
+            } else if model.isMonitoring {
+                Text("Connection status updates automatically.").foregroundStyle(.secondary)
+            } else {
+                Text("USB monitoring is stopped.").foregroundStyle(.secondary)
+            }
         }
+        .font(.callout)
     }
-}
-
-#Preview {
-    ContentView(model: USBMonitorViewModel())
 }
