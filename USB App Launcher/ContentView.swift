@@ -13,7 +13,7 @@ struct ContentView: View {
             RegistrationStatus(model: model)
         }
         .padding()
-        .frame(minWidth: 650, minHeight: 320)
+        .frame(minWidth: 850, minHeight: 320)
         .sheet(isPresented: $isAddingDevice) {
             AddUSBDeviceView(model: model)
         }
@@ -32,6 +32,24 @@ private struct RegisteredDeviceTable: View {
                 Text(device.isConnected ? "Connected" : "Disconnected")
             }
             .width(min: 135, ideal: 160)
+            TableColumn("Auto-Launch App") { device in
+                ApplicationSelectionCell(selection: device.registration.application) {
+                    model.selectApplication(for: device.id)
+                }
+                .disabled(!model.canEditRegistrations)
+            }
+            .width(min: 180, ideal: 240)
+            TableColumn("Auto-Quit") { device in
+                Toggle("Auto-Quit", isOn: Binding(
+                    get: { device.registration.autoQuit },
+                    set: { model.setAutoQuit($0, for: device.id) }
+                ))
+                .toggleStyle(.checkbox)
+                .labelsHidden()
+                .accessibilityLabel("Auto-Quit for \(device.registration.deviceName)")
+                .disabled(device.registration.application == nil || !model.canEditRegistrations)
+            }
+            .width(75)
             TableColumn("Delete") { device in
                 Button {
                     model.remove(device.id)
@@ -69,6 +87,12 @@ private struct RegistrationStatus: View {
             }
             if let error = model.errorMessage {
                 Text(error).foregroundStyle(.red).textSelection(.enabled)
+            }
+            if let warning = model.automation.warning {
+                Text(warning).foregroundStyle(.secondary).textSelection(.enabled)
+            }
+            if let message = model.applicationMessage {
+                Text(message).foregroundStyle(.secondary)
             }
             if model.isSaving {
                 Text("Saving registration…").foregroundStyle(.secondary)

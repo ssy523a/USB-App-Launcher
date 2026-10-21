@@ -46,7 +46,7 @@ actor USBRegistrationStore {
             return []
         }
         let document = try JSONDecoder().decode(Document.self, from: data)
-        guard document.version == 1 else { throw StorageError.invalidDocument }
+        guard (1...2).contains(document.version) else { throw StorageError.invalidDocument }
         try validate(document.devices)
         didLoad = true
         lastSaved = document.devices
@@ -60,7 +60,7 @@ actor USBRegistrationStore {
         guard devices != lastSaved else { return }
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-        let data = try encoder.encode(Document(version: 1, devices: devices))
+        let data = try encoder.encode(Document(version: 2, devices: devices))
         try FileManager.default.createDirectory(
             at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true
         )

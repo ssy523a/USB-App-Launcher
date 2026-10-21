@@ -1,4 +1,6 @@
+import AppKit
 import Foundation
+import UniformTypeIdentifiers
 import Observation
 
 @MainActor
@@ -12,6 +14,10 @@ final class USBMonitorViewModel {
     private(set) var isStorageReady = false
     private(set) var isSaving = false
 
+    let automation = ApplicationAutomationService()
+    private(set) var applicationMessage: String?
+    private(set) var isSelectingApplication = false
+
     @ObservationIgnored private let monitor = USBDeviceMonitor()
     @ObservationIgnored private let store = USBRegistrationStore()
     @ObservationIgnored private var registrations: [RegisteredUSBDevice] = []
@@ -20,7 +26,7 @@ final class USBMonitorViewModel {
     @ObservationIgnored private var saveTask: Task<Void, Never>?
     @ObservationIgnored private var isStopping = false
 
-    var canEditRegistrations: Bool { isStorageReady && !isSaving && !isStopping }
+    var canEditRegistrations: Bool { isStorageReady && !isSaving && !isStopping && !isSelectingApplication }
 
     func start() {
         guard observationTask == nil else { return }
@@ -71,7 +77,51 @@ final class USBMonitorViewModel {
 
     func remove(_ id: USBDevice.ModelID) {
         guard canEditRegistrations, registrations.contains(where: { $0.id == id }) else { return }
+        automation.protectApplication(for: id, cancelLaunch: true)
         persist(registrations.filter { $0.id != id })
+    }
+
+    func selectApplication(for id: USBDevice.ModelID) {
+        guard canEditRegistrations else { return }
+        isSelectingApplication = true
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.applicationBundle]
+        panel.canChooseDirectories = false
+        panel.canChooseFiles = true
+        panel.allowsMultipleSelection = false
+        panel.directoryURL = URL(fileURLWithPath: "/Applications", isDirectory: true)
+        panel.prompt = "Select Application"
+        panel.begin { [weak self] response in
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                defer { isSelectingApplication = false }
+                guard response == .OK, let url = panel.url else { return }
+                do {
+                    let selection = try await Task.detached(priority: .utility) {
+                        try SelectedApplication.select(url)
+                    }.value
+                    guard !isStopping, let index = registrations.firstIndex(where: { $0.id == id }) else { return }
+                    automation.protectApplication(for: id, cancelLaunch: true)
+                    var updated = registrations
+                    updated[index].application = selection
+                    updated[index].autoQuit = false
+                    applicationMessage = "Application selection takes effect on the next USB connection, or the next launch of USB App Launcher."
+                    persist(updated)
+                } catch {
+                    applicationMessage = error.localizedDescription
+                }
+            }
+        }
+    }
+
+    func setAutoQuit(_ enabled: Bool, for id: USBDevice.ModelID) {
+        guard canEditRegistrations,
+              let index = registrations.firstIndex(where: { $0.id == id }),
+              registrations[index].application != nil else { return }
+        var updated = registrations
+        if !enabled { automation.protectApplication(for: id, cancelLaunch: false) }
+        updated[index].autoQuit = enabled
+        persist(updated)
     }
 
     private func persist(_ updated: [RegisteredUSBDevice]) {
@@ -96,10 +146,14 @@ final class USBMonitorViewModel {
         registeredDevices = RegisteredUSBDeviceState.resolve(
             registrations: registrations, connections: devices
         )
+        if isStorageReady && isMonitoring && !isStopping {
+            automation.update(registeredDevices)
+        }
     }
 
     func stop() async {
         isStopping = true
+        automation.stop()
         // A normal quit waits for any in-flight registration write.
         await loadTask?.value
         await saveTask?.value
