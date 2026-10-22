@@ -9,7 +9,8 @@ struct MyApp: App {
         Window("USB App Launcher", id: "usb-monitor") {
             ContentView(model: appDelegate.model)
         }
-        .defaultSize(width: 960, height: 420)
+        .defaultSize(width: 960, height: 580)
+        .windowResizability(.contentMinSize)
     }
 }
 

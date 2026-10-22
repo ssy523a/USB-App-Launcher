@@ -12,12 +12,13 @@ struct ApplicationSelectionCell: View {
                 if let icon {
                     Image(nsImage: icon).resizable().frame(width: 18, height: 18)
                 }
-                Text(selection?.name ?? "Select Application…")
-                    .lineLimit(1)
+                Text(selection?.name ?? "Choose App...")
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
             }
         }
         .buttonStyle(.borderless)
-        .help("Select an application; changes apply on the next connection.")
+        .help(selection.map { "\($0.name) — Select to replace this application." } ?? "Choose an application.")
         .task(id: selection) {
             icon = nil
             guard let selection else { return }

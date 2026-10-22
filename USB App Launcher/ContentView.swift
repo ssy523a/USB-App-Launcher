@@ -8,12 +8,14 @@ struct ContentView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Registered USB Devices").font(.title2)
             RegisteredDeviceTable(model: model)
-            Button("Add USB Device") { isAddingDevice = true }
+            Button("Add USB Device", systemImage: "plus") { isAddingDevice = true }
                 .disabled(!model.canEditRegistrations)
             RegistrationStatus(model: model)
+            Divider()
+            BackgroundHelperSection()
         }
-        .padding()
-        .frame(minWidth: 850, minHeight: 320)
+        .padding(20)
+        .frame(minWidth: 850, minHeight: 520)
         .sheet(isPresented: $isAddingDevice) {
             AddUSBDeviceView(model: model)
         }
@@ -26,19 +28,34 @@ private struct RegisteredDeviceTable: View {
     var body: some View {
         Table(model.registeredDevices) {
             TableColumn("USB Device") { device in
-                Text(device.registration.deviceName)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(device.registration.deviceName)
+                        .lineLimit(1)
+                        .help(device.registration.deviceName)
+                    Text(String(format: "%04X:%04X",
+                                Int(device.registration.vendorID), Int(device.registration.productID)))
+                        .font(.caption.monospaced())
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.vertical, 5)
             }
+            .width(min: 170, ideal: 230)
             TableColumn("Connection Status") { device in
-                Text(device.isConnected ? "Connected" : "Disconnected")
+                Label {
+                    Text(device.isConnected ? "Connected" : "Disconnected")
+                } icon: {
+                    Image(systemName: device.isConnected ? "checkmark.circle.fill" : "minus.circle")
+                        .foregroundStyle(device.isConnected ? Color.green : Color.secondary)
+                }
             }
-            .width(min: 135, ideal: 160)
+            .width(min: 140, ideal: 150, max: 180)
             TableColumn("Auto-Launch App") { device in
                 ApplicationSelectionCell(selection: device.registration.application) {
                     model.selectApplication(for: device.id)
                 }
                 .disabled(!model.canEditRegistrations)
             }
-            .width(min: 180, ideal: 240)
+            .width(min: 210, ideal: 250)
             TableColumn("Auto-Quit") { device in
                 Toggle("Auto-Quit", isOn: Binding(
                     get: { device.registration.autoQuit },
@@ -58,20 +75,24 @@ private struct RegisteredDeviceTable: View {
                 }
                 .buttonStyle(.borderless)
                 .accessibilityLabel("Remove \(device.registration.deviceName)")
-                .help("Remove this registration")
+                .help("Remove Device")
                 .disabled(!model.canEditRegistrations)
                 .frame(maxWidth: .infinity, alignment: .trailing)
             }
             .width(60)
         }
+        .alternatingRowBackgrounds(.disabled)
+        .frame(minHeight: 160)
         .overlay {
             if model.registeredDevices.isEmpty {
-                Text(model.isStorageReady
-                     ? "No registered devices. Choose Add USB Device to get started."
-                     : "No registrations loaded.")
-                    .foregroundStyle(.secondary)
-                    .padding()
-                    .allowsHitTesting(false)
+                VStack(spacing: 6) {
+                    Text(model.isStorageReady ? "No Registered USB Devices" : "No Registrations Loaded")
+                        .font(.headline)
+                    Text("Connect a USB device, then choose Add USB Device below.")
+                        .foregroundStyle(.secondary)
+                }
+                .padding()
+                .allowsHitTesting(false)
             }
         }
     }
@@ -105,5 +126,30 @@ private struct RegistrationStatus: View {
             }
         }
         .font(.callout)
+    }
+}
+
+private struct BackgroundHelperSection: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Background Helper")
+                .font(.headline)
+            Text("Automatically monitors USB devices and runs configured applications after login.")
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            HStack {
+                Label("Not Available", systemImage: "minus.circle")
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Button("Register") {}
+                    .disabled(true)
+                Button("Unregister") {}
+                    .disabled(true)
+            }
+            Text("Available in a future version")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .padding(.top, 4)
     }
 }
