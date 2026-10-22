@@ -5,10 +5,16 @@ import Observation
 @MainActor
 @Observable
 final class ApplicationAutomationService {
-    private(set) var warning: String?
+    private(set) var warning: String? {
+        didSet {
+            if let warning, warning != oldValue { print("[Automation] \(warning)") }
+        }
+    }
     @ObservationIgnored private var previous: [USBDevice.ModelID: RegisteredUSBDeviceState] = [:]
     @ObservationIgnored private var entries: [String: Entry] = [:]
     @ObservationIgnored private var stopped = false
+    @ObservationIgnored private var lease: AutomationLease?
+    @ObservationIgnored private var attemptedStart = false
     @ObservationIgnored private var terminationObserver: NSObjectProtocol?
 
     private final class Entry {
@@ -31,8 +37,26 @@ final class ApplicationAutomationService {
         }
     }
 
+    /// Explicit, one-shot acquisition. A failed acquisition never auto-retries.
+    func start() async -> Bool {
+        guard !stopped, !attemptedStart else { return lease != nil && !stopped }
+        attemptedStart = true
+        do {
+            let acquired = try await Task.detached(priority: .utility) {
+                try AutomationLease.acquire()
+            }.value
+            guard !stopped else { return false }
+            lease = acquired
+            log("Exclusive automation ownership acquired")
+            return true
+        } catch {
+            warning = error.localizedDescription
+            return false
+        }
+    }
+
     func update(_ states: [RegisteredUSBDeviceState]) {
-        guard !stopped else { return }
+        guard !stopped, lease != nil else { return }
         let current = Dictionary(uniqueKeysWithValues: states.map { ($0.id, $0) })
         // Deletion, reassignment and disabling Auto-Quit must never cause a quit.
         for (id, old) in previous {
@@ -203,14 +227,19 @@ final class ApplicationAutomationService {
         // Termination notifications never trigger a launch.
     }
 
-    func stop() {
+    func stop() async {
         stopped = true
+        let pendingLaunches = entries.values.compactMap(\.launchTask)
         for entry in entries.values {
             cancelQuit(entry)
             entry.launchTask?.cancel()
             entry.owner = nil
         }
+        // Keep ownership until submitted launch requests have settled. Cancellation
+        // cannot retract a request already sent to LaunchServices.
+        for task in pendingLaunches { await task.value }
         entries.removeAll()
+        lease = nil
         if let terminationObserver {
             NSWorkspace.shared.notificationCenter.removeObserver(terminationObserver)
             self.terminationObserver = nil

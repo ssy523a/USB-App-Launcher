@@ -32,6 +32,7 @@ final class USBMonitorViewModel {
         guard observationTask == nil else { return }
         isStopping = false
         loadTask = Task { [weak self, store] in
+            _ = await self?.automation.start()
             do {
                 let loaded = try await store.load()
                 guard let self else { return }
@@ -153,7 +154,7 @@ final class USBMonitorViewModel {
 
     func stop() async {
         isStopping = true
-        automation.stop()
+        await automation.stop()
         // A normal quit waits for any in-flight registration write.
         await loadTask?.value
         await saveTask?.value

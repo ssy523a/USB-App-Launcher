@@ -34,13 +34,14 @@ actor USBRegistrationStore {
         }
     }
 
-    func load() throws -> [RegisteredUSBDevice] {
+    func load(requireExistingFile: Bool = false) throws -> [RegisteredUSBDevice] {
         guard let fileURL else { throw StorageError.unavailable }
         let data: Data
         do {
             data = try Data(contentsOf: fileURL)
         } catch let error as NSError where error.domain == NSCocoaErrorDomain
             && error.code == NSFileReadNoSuchFileError {
+            if requireExistingFile { throw error }
             didLoad = true
             lastSaved = []
             return []

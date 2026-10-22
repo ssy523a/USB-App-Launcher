@@ -1,39 +1,61 @@
+import CoreFoundation
 import Darwin
 import Dispatch
+import Foundation
 
-/// The main dispatch queue serializes signal delivery and orderly shutdown.
-/// No USB, application automation, configuration reads, or UI are started here.
+@MainActor
 final class HelperLifecycle {
     private var signalSources: [DispatchSourceSignal] = []
     private let cancellationGroup = DispatchGroup()
     private var isStopping = false
+    private var controller: HelperAutomationController?
+    private var startupTask: Task<Void, Never>?
+    private var keepAliveSource: CFRunLoopSource?
 
     func start() {
+        // Keep the actual main thread's run loop alive for NSWorkspace callbacks.
+        // This source is never signalled and produces no recurring work.
+        var context = CFRunLoopSourceContext()
+        guard let source = CFRunLoopSourceCreate(nil, 0, &context) else { exit(EXIT_FAILURE) }
+        keepAliveSource = source
+        CFRunLoopAddSource(CFRunLoopGetMain(), source, .defaultMode)
         for number in [SIGTERM, SIGINT] {
-            // Dispatch sources observe signals; ignoring the default action lets
-            // the source perform cleanup instead of immediate process termination.
             signal(number, SIG_IGN)
-            let source = DispatchSource.makeSignalSource(signal: number, queue: .main)
+            let signalSource = DispatchSource.makeSignalSource(signal: number, queue: .main)
             cancellationGroup.enter()
-            source.setEventHandler { [weak self] in
-                self?.stop()
+            signalSource.setEventHandler { [weak self] in
+                Task { @MainActor [weak self] in await self?.stop() }
             }
             let group = cancellationGroup
-            source.setCancelHandler { group.leave() }
-            signalSources.append(source)
-            source.activate()
+            signalSource.setCancelHandler { group.leave() }
+            signalSources.append(signalSource)
+            signalSource.activate()
         }
         debugLog("USB App Launcher Helper started")
+        if CommandLine.arguments.contains("--automation-test") {
+            print("[Helper] Automation Test Mode requested; acquiring ownership")
+            let controller = HelperAutomationController()
+            self.controller = controller
+            startupTask = Task { await controller.start() }
+        } else {
+            print("[Helper] Inactive Mode: automation disabled (use --automation-test explicitly)")
+        }
     }
 
-    private func stop() {
+    private func stop() async {
         guard !isStopping else { return }
         isStopping = true
         debugLog("Shutdown requested")
+        startupTask?.cancel()
+        await controller?.stop()
+        await startupTask?.value
+        controller = nil
         for source in signalSources { source.cancel() }
         signalSources.removeAll()
-        // Wait asynchronously until both sources have completed cancellation.
+        let source = keepAliveSource
+        keepAliveSource = nil
         cancellationGroup.notify(queue: .main) {
+            if let source { CFRunLoopSourceInvalidate(source) }
             debugLog("Stopped")
             exit(EXIT_SUCCESS)
         }
@@ -47,8 +69,9 @@ private func debugLog(_ message: String) {
     #endif
 }
 
-// Keep the lifecycle alive for the process lifetime. dispatchMain sleeps in the
-// system event machinery when idle; it does not poll or create a recurring timer.
-let lifecycle = HelperLifecycle()
-lifecycle.start()
-dispatchMain()
+// This synchronous executable entry point runs on the OS main thread.
+MainActor.assumeIsolated {
+    let lifecycle = HelperLifecycle()
+    lifecycle.start()
+    withExtendedLifetime(lifecycle) { CFRunLoopRun() }
+}

@@ -1,0 +1,1 @@
+../../USB App Launcher/USBRegistrationStore.swift
