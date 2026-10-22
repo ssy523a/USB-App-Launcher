@@ -10,7 +10,7 @@ struct ApplicationSelectionCell: View {
         Button(action: select) {
             HStack(spacing: 6) {
                 if let icon {
-                    Image(nsImage: icon).resizable().frame(width: 18, height: 18)
+                    Image(nsImage: icon).resizable().frame(width: 27, height: 27)
                 }
                 Text(selection?.name ?? "Choose App...")
                     .lineLimit(2)

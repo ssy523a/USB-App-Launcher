@@ -6,8 +6,42 @@
 	objectVersion = 90;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		7AB2C77C308A1FF300119769 /* USBAppLauncherHelper in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7AB2C772308A1C4B00119769 /* USBAppLauncherHelper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		7AB2C779308A1E3F00119769 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 000000000000000000000000 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 7AB2C771308A1C4B00119769;
+			remoteInfo = USBAppLauncherHelper;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		7AB2C770308A1C4B00119769 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolder = None;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+		7AB2C77B308A1E9A00119769 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			dstPath = Contents/Helpers;
+			dstSubfolder = Wrapper;
+			files = (
+				7AB2C77C308A1FF300119769 /* USBAppLauncherHelper in CopyFiles */,
+			);
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		000000000000000000000120 /* USB App Launcher.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "USB App Launcher.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		7AB2C772308A1C4B00119769 /* USBAppLauncherHelper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = USBAppLauncherHelper; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -16,10 +50,20 @@
 			path = "USB App Launcher";
 			sourceTree = "<group>";
 		};
+		7AB2C773308A1C4B00119769 /* USBAppLauncherHelper */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = USBAppLauncherHelper;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		000000000000000130000000 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+			);
+		};
+		7AB2C76F308A1C4B00119769 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			files = (
 			);
@@ -31,6 +75,7 @@
 			isa = PBXGroup;
 			children = (
 				000000000000000000000010 /* USB App Launcher */,
+				7AB2C773308A1C4B00119769 /* USBAppLauncherHelper */,
 				000000000000000000000020 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -39,6 +84,7 @@
 			isa = PBXGroup;
 			children = (
 				000000000000000000000120 /* USB App Launcher.app */,
+				7AB2C772308A1C4B00119769 /* USBAppLauncherHelper */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -53,8 +99,12 @@
 				000000000000000120000000 /* Sources */,
 				000000000000000130000000 /* Frameworks */,
 				000000000000000140000000 /* Resources */,
+				7AB2C77B308A1E9A00119769 /* CopyFiles */,
 			);
 			buildRules = (
+			);
+			dependencies = (
+				7AB2C77A308A1E3F00119769 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				000000000000000000000010 /* USB App Launcher */,
@@ -64,6 +114,24 @@
 			productReference = 000000000000000000000120 /* USB App Launcher.app */;
 			productType = "com.apple.product-type.application";
 		};
+		7AB2C771308A1C4B00119769 /* USBAppLauncherHelper */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7AB2C778308A1C4B00119769 /* Build configuration list for PBXNativeTarget "USBAppLauncherHelper" */;
+			buildPhases = (
+				7AB2C76E308A1C4B00119769 /* Sources */,
+				7AB2C76F308A1C4B00119769 /* Frameworks */,
+				7AB2C770308A1C4B00119769 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			fileSystemSynchronizedGroups = (
+				7AB2C773308A1C4B00119769 /* USBAppLauncherHelper */,
+			);
+			name = USBAppLauncherHelper;
+			productName = USBAppLauncherHelper;
+			productReference = 7AB2C772308A1C4B00119769 /* USBAppLauncherHelper */;
+			productType = "com.apple.product-type.tool";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -71,11 +139,14 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 2630;
+				LastSwiftUpdateCheck = 2710;
 				LastUpgradeCheck = 2710;
 				TargetAttributes = {
 					000000000000000100000000 = {
 						CreatedOnToolsVersion = 26.3;
+					};
+					7AB2C771308A1C4B00119769 = {
+						CreatedOnToolsVersion = 27.1;
 					};
 				};
 			};
@@ -94,6 +165,7 @@
 			projectRoot = "";
 			targets = (
 				000000000000000100000000 /* USB App Launcher */,
+				7AB2C771308A1C4B00119769 /* USBAppLauncherHelper */,
 			);
 		};
 /* End PBXProject section */
@@ -112,7 +184,20 @@
 			files = (
 			);
 		};
+		7AB2C76E308A1C4B00119769 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		7AB2C77A308A1E3F00119769 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 7AB2C771308A1C4B00119769 /* USBAppLauncherHelper */;
+			targetProxy = 7AB2C779308A1E3F00119769 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		000000000000000011000000 /* Debug configuration for PBXProject "USB App Launcher" */ = {
@@ -325,6 +410,40 @@
 			};
 			name = Release;
 		};
+		7AB2C776308A1C4B00119769 /* Debug configuration for PBXNativeTarget "USBAppLauncherHelper" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				ENABLE_APP_SANDBOX = NO;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				OTHER_CODE_SIGN_FLAGS = "--identifier $(PRODUCT_BUNDLE_IDENTIFIER)";
+				PRODUCT_BUNDLE_IDENTIFIER = "devplaceholder.VC4RZVAC.USB-App-Launcher.USBAppLauncherHelper";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		7AB2C777308A1C4B00119769 /* Release configuration for PBXNativeTarget "USBAppLauncherHelper" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				ENABLE_APP_SANDBOX = NO;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				OTHER_CODE_SIGN_FLAGS = "--identifier $(PRODUCT_BUNDLE_IDENTIFIER)";
+				PRODUCT_BUNDLE_IDENTIFIER = "devplaceholder.VC4RZVAC.USB-App-Launcher.USBAppLauncherHelper";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -341,6 +460,14 @@
 			buildConfigurations = (
 				000000000000000111000000 /* Debug configuration for PBXNativeTarget "USB App Launcher" */,
 				000000000000000112000000 /* Release configuration for PBXNativeTarget "USB App Launcher" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		7AB2C778308A1C4B00119769 /* Build configuration list for PBXNativeTarget "USBAppLauncherHelper" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7AB2C776308A1C4B00119769 /* Debug configuration for PBXNativeTarget "USBAppLauncherHelper" */,
+				7AB2C777308A1C4B00119769 /* Release configuration for PBXNativeTarget "USBAppLauncherHelper" */,
 			);
 			defaultConfigurationName = Release;
 		};
