@@ -15,7 +15,7 @@ struct ContentView: View {
             BackgroundHelperSection()
         }
         .padding(20)
-        .frame(minWidth: 850, minHeight: 520)
+        .frame(minWidth: 960, minHeight: 580)
         .sheet(isPresented: $isAddingDevice) {
             AddUSBDeviceView(model: model)
         }
