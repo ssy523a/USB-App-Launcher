@@ -1,23 +1,26 @@
 import Foundation
 
-/// Serializes disk access off the main actor. One writer per process for Step 2.
-/// A future helper needs a shared container and coordinated writes (or one owning
-/// process with IPC). Atomic replacement alone does not prevent lost updates
-/// between independent processes. No App Group or IPC is configured here.
+/// Serializes management-app disk access. The Helper uses the same decoder but
+/// never writes. Atomic replacement gives readers complete snapshots; it does not
+/// coordinate multiple writers. Live observation is handled by ConfigurationWatcher.
 actor USBRegistrationStore {
     private let fileURL: URL?
     private var lastSaved: [RegisteredUSBDevice]?
     private var didLoad = false
 
-    init(fileURL: URL? = nil) {
-        self.fileURL = fileURL ?? FileManager.default.urls(
+    nonisolated static var defaultFileURL: URL? {
+        FileManager.default.urls(
             for: .applicationSupportDirectory, in: .userDomainMask
         ).first?
             .appendingPathComponent("USB App Launcher", isDirectory: true)
             .appendingPathComponent("registered-devices.json")
     }
 
-    private struct Document: Codable {
+    init(fileURL: URL? = nil) {
+        self.fileURL = fileURL ?? Self.defaultFileURL
+    }
+
+    nonisolated private struct Document: Codable {
         let version: Int
         let devices: [RegisteredUSBDevice]
     }
@@ -46,18 +49,16 @@ actor USBRegistrationStore {
             lastSaved = []
             return []
         }
-        let document = try JSONDecoder().decode(Document.self, from: data)
-        guard (1...2).contains(document.version) else { throw StorageError.invalidDocument }
-        try validate(document.devices)
+        let devices = try Self.decode(data)
         didLoad = true
-        lastSaved = document.devices
-        return document.devices
+        lastSaved = devices
+        return devices
     }
 
     func save(_ devices: [RegisteredUSBDevice]) throws {
         guard didLoad else { throw StorageError.notLoaded }
         guard let fileURL else { throw StorageError.unavailable }
-        try validate(devices)
+        try Self.validate(devices)
         guard devices != lastSaved else { return }
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
@@ -69,7 +70,15 @@ actor USBRegistrationStore {
         lastSaved = devices
     }
 
-    private func validate(_ devices: [RegisteredUSBDevice]) throws {
+    /// Shared transactional decoder: no disk writes or store mutation.
+    nonisolated static func decode(_ data: Data) throws -> [RegisteredUSBDevice] {
+        let document = try JSONDecoder().decode(Document.self, from: data)
+        guard (1...2).contains(document.version) else { throw StorageError.invalidDocument }
+        try validate(document.devices)
+        return document.devices
+    }
+
+    nonisolated private static func validate(_ devices: [RegisteredUSBDevice]) throws {
         guard Set(devices.map(\.id)).count == devices.count,
               devices.allSatisfy({ !$0.deviceName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty })
         else { throw StorageError.invalidDocument }

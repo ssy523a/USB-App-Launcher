@@ -106,7 +106,7 @@ final class USBMonitorViewModel {
                     var updated = registrations
                     updated[index].application = selection
                     updated[index].autoQuit = false
-                    applicationMessage = "Application selection takes effect on the next USB connection, or the next launch of USB App Launcher."
+                    applicationMessage = "Application selection applies after saving. A connected device can launch the new application; the previous application is left running."
                     persist(updated)
                 } catch {
                     applicationMessage = error.localizedDescription

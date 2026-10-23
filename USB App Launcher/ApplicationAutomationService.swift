@@ -25,6 +25,8 @@ final class ApplicationAutomationService {
         var ownedLaunchDate: Date?
         var ownedURL: URL?
         var vetoQuit = false
+        var quitArmed = false
+        var preferenceEditPending = false
         var terminationRequested = false
         init(_ selection: SelectedApplication) { self.selection = selection }
     }
@@ -62,7 +64,11 @@ final class ApplicationAutomationService {
         for (id, old) in previous {
             guard let oldApp = old.registration.application else { continue }
             let new = current[id]?.registration
-            if new?.application != oldApp || new?.autoQuit == false {
+            if new?.application == oldApp, new?.autoQuit != old.registration.autoQuit {
+                // Commit the pre-save UI protection only after the preference changed.
+                entries[oldApp.key]?.preferenceEditPending = false
+            }
+            if new?.application != oldApp {
                 if let entry = entries[oldApp.key] {
                     entry.vetoQuit = true
                     cancelQuit(entry)
@@ -80,13 +86,16 @@ final class ApplicationAutomationService {
             }
             if state.isConnected, let entry = entries[app.key] {
                 cancelQuit(entry)
-                if !state.registration.autoQuit { entry.vetoQuit = true }
             }
         }
         previous = current
         discardTerminatedOwners()
         for app in launches { requestLaunch(app) }
         for (key, entry) in entries {
+            entry.quitArmed = AutomationPolicy.armQuit(
+                previouslyArmed: entry.quitArmed, key: key, states: states
+            )
+            if !entry.quitArmed { cancelQuit(entry) }
             if isRequired(key) { cancelQuit(entry) }
             else { scheduleQuit(key, entry: entry) }
         }
@@ -97,7 +106,9 @@ final class ApplicationAutomationService {
     func protectApplication(for id: USBDevice.ModelID, cancelLaunch: Bool) {
         guard let key = previous[id]?.registration.application?.key,
               let entry = entries[key] else { return }
-        entry.vetoQuit = true
+        if cancelLaunch { entry.vetoQuit = true }
+        else { entry.preferenceEditPending = true }
+        entry.quitArmed = false
         cancelQuit(entry)
         if cancelLaunch { entry.launchTask?.cancel() }
     }
@@ -107,7 +118,8 @@ final class ApplicationAutomationService {
     }
 
     private func permitsQuit(_ key: String, entry: Entry) -> Bool {
-        !stopped && !entry.vetoQuit && !entry.terminationRequested
+        !stopped && entry.quitArmed && !entry.preferenceEditPending
+            && !entry.vetoQuit && !entry.terminationRequested
             && AutomationPolicy.permitsQuit(key: key, states: Array(previous.values))
     }
 
@@ -126,9 +138,8 @@ final class ApplicationAutomationService {
             if let owner = existing.owner, !owner.isTerminated { return }
         }
         let entry = Entry(app)
-        entry.vetoQuit = previous.values.contains {
-            $0.registration.application?.key == app.key && !$0.registration.autoQuit
-        }
+        entry.quitArmed = isRequired(app.key) && previous.values
+            .filter { $0.registration.application?.key == app.key }.allSatisfy { $0.registration.autoQuit }
         entries[app.key] = entry
         entry.launchTask = Task { [weak self, weak entry] in
             guard let self, let entry else { return }
@@ -264,8 +275,16 @@ nonisolated enum AutomationPolicy {
     static func shouldLaunch(previous: RegisteredUSBDeviceState?, current: RegisteredUSBDeviceState) -> Bool {
         guard current.isConnected, current.registration.application != nil else { return false }
         guard let previous else { return true } // Startup enumeration.
-        // Changes while connected are deferred; disconnected changes launch on reconnect.
-        return !previous.isConnected
+        // A saved application change safely initializes demand for the new target.
+        return !previous.isConnected || previous.registration.application != current.registration.application
+    }
+
+    /// Consent may arm only while there is connected demand. Enabling on a
+    /// disconnected model cannot retroactively quit an already-running instance.
+    static func armQuit(previouslyArmed: Bool, key: String, states: [RegisteredUSBDeviceState]) -> Bool {
+        let rules = states.filter { $0.registration.application?.key == key }
+        guard !rules.isEmpty, rules.allSatisfy({ $0.registration.autoQuit }) else { return false }
+        return previouslyArmed || rules.contains { $0.isConnected }
     }
 
     static func permitsQuit(key: String, states: [RegisteredUSBDeviceState]) -> Bool {
