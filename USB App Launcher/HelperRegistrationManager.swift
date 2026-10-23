@@ -95,7 +95,7 @@ nonisolated enum HelperRegistrationStatus: Sendable {
 
 /// Serializes ServiceManagement work away from the main actor. No polling.
 private actor HelperService {
-    private let service = SMAppService.agent(plistName: "com.ssy523a.USBAppLauncher.Helper.plist")
+    private let service = SMAppService.agent(plistName: "com.ssy523a.USBAppLauncher.BackgroundAgent.plist")
 
     func status() -> HelperRegistrationStatus {
         switch service.status {
@@ -109,7 +109,7 @@ private actor HelperService {
 
     func hasBundledService() -> Bool {
         let bundle = Bundle.main.bundleURL
-        let plist = bundle.appendingPathComponent("Contents/Library/LaunchAgents/com.ssy523a.USBAppLauncher.Helper.plist")
+        let plist = bundle.appendingPathComponent("Contents/Library/LaunchAgents/com.ssy523a.USBAppLauncher.BackgroundAgent.plist")
         let executable = bundle.appendingPathComponent("Contents/Helpers/USBAppLauncherHelper")
         return FileManager.default.isReadableFile(atPath: plist.path)
             && FileManager.default.isExecutableFile(atPath: executable.path)

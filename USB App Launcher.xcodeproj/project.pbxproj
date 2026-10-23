@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		7A16B651308B2FF9004FB330 /* com.ssy523a.USBAppLauncher.Helper.plist in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7A16B64F308B2EA3004FB330 /* com.ssy523a.USBAppLauncher.Helper.plist */; };
+		7A1744E8308C25D2007C7FED /* com.ssy523a.USBAppLauncher.BackgroundAgent.plist in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7A16B64F308B2EA3004FB330 /* com.ssy523a.USBAppLauncher.BackgroundAgent.plist */; };
 		7AB2C77C308A1FF300119769 /* USBAppLauncherHelper in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7AB2C772308A1C4B00119769 /* USBAppLauncherHelper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 /* End PBXBuildFile section */
 
@@ -27,7 +27,7 @@
 			dstPath = Contents/Library/LaunchAgents;
 			dstSubfolder = Wrapper;
 			files = (
-				7A16B651308B2FF9004FB330 /* com.ssy523a.USBAppLauncher.Helper.plist in CopyFiles */,
+				7A1744E8308C25D2007C7FED /* com.ssy523a.USBAppLauncher.BackgroundAgent.plist in CopyFiles */,
 			);
 		};
 		7AB2C770308A1C4B00119769 /* CopyFiles */ = {
@@ -50,7 +50,7 @@
 
 /* Begin PBXFileReference section */
 		000000000000000000000120 /* USB App Launcher.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "USB App Launcher.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		7A16B64F308B2EA3004FB330 /* com.ssy523a.USBAppLauncher.Helper.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = com.ssy523a.USBAppLauncher.Helper.plist; sourceTree = "<group>"; };
+		7A16B64F308B2EA3004FB330 /* com.ssy523a.USBAppLauncher.BackgroundAgent.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = com.ssy523a.USBAppLauncher.BackgroundAgent.plist; sourceTree = "<group>"; };
 		7AB2C772308A1C4B00119769 /* USBAppLauncherHelper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = USBAppLauncherHelper; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -86,7 +86,7 @@
 			children = (
 				000000000000000000000010 /* USB App Launcher */,
 				7AB2C773308A1C4B00119769 /* USBAppLauncherHelper */,
-				7A16B64F308B2EA3004FB330 /* com.ssy523a.USBAppLauncher.Helper.plist */,
+				7A16B64F308B2EA3004FB330 /* com.ssy523a.USBAppLauncher.BackgroundAgent.plist */,
 				000000000000000000000020 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -369,7 +369,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "devplaceholder.$(PROJECT_UNIQUE_VALUE:identifier).$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.ssy523a.USBAppLauncher;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = macosx;
@@ -407,7 +407,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "devplaceholder.$(PROJECT_UNIQUE_VALUE:identifier).$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.ssy523a.USBAppLauncher;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = macosx;
@@ -429,7 +429,7 @@
 				ENABLE_APP_SANDBOX = NO;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				OTHER_CODE_SIGN_FLAGS = "--identifier $(PRODUCT_BUNDLE_IDENTIFIER)";
-				PRODUCT_BUNDLE_IDENTIFIER = "devplaceholder.VC4RZVAC.USB-App-Launcher.USBAppLauncherHelper";
+				PRODUCT_BUNDLE_IDENTIFIER = com.ssy523a.USBAppLauncher.Helper;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
@@ -446,7 +446,7 @@
 				ENABLE_APP_SANDBOX = NO;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				OTHER_CODE_SIGN_FLAGS = "--identifier $(PRODUCT_BUNDLE_IDENTIFIER)";
-				PRODUCT_BUNDLE_IDENTIFIER = "devplaceholder.VC4RZVAC.USB-App-Launcher.USBAppLauncherHelper";
+				PRODUCT_BUNDLE_IDENTIFIER = com.ssy523a.USBAppLauncher.Helper;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
