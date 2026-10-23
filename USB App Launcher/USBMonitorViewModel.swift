@@ -5,6 +5,7 @@ import Observation
 
 @MainActor
 @Observable
+/// Configuration and USB observation only. Application automation belongs to the Helper.
 final class USBMonitorViewModel {
     private(set) var devices: [USBDevice] = []
     private(set) var registeredDevices: [RegisteredUSBDeviceState] = []
@@ -14,7 +15,6 @@ final class USBMonitorViewModel {
     private(set) var isStorageReady = false
     private(set) var isSaving = false
 
-    let automation = ApplicationAutomationService()
     private(set) var applicationMessage: String?
     private(set) var isSelectingApplication = false
 
@@ -32,7 +32,6 @@ final class USBMonitorViewModel {
         guard observationTask == nil else { return }
         isStopping = false
         loadTask = Task { [weak self, store] in
-            _ = await self?.automation.start()
             do {
                 let loaded = try await store.load()
                 guard let self else { return }
@@ -78,7 +77,6 @@ final class USBMonitorViewModel {
 
     func remove(_ id: USBDevice.ModelID) {
         guard canEditRegistrations, registrations.contains(where: { $0.id == id }) else { return }
-        automation.protectApplication(for: id, cancelLaunch: true)
         persist(registrations.filter { $0.id != id })
     }
 
@@ -102,11 +100,10 @@ final class USBMonitorViewModel {
                         try SelectedApplication.select(url)
                     }.value
                     guard !isStopping, let index = registrations.firstIndex(where: { $0.id == id }) else { return }
-                    automation.protectApplication(for: id, cancelLaunch: true)
                     var updated = registrations
                     updated[index].application = selection
                     updated[index].autoQuit = false
-                    applicationMessage = "Application selection applies after saving. A connected device can launch the new application; the previous application is left running."
+                    applicationMessage = "Changes apply after saving when the Background Helper is active. The previous application is left running."
                     persist(updated)
                 } catch {
                     applicationMessage = error.localizedDescription
@@ -120,7 +117,6 @@ final class USBMonitorViewModel {
               let index = registrations.firstIndex(where: { $0.id == id }),
               registrations[index].application != nil else { return }
         var updated = registrations
-        if !enabled { automation.protectApplication(for: id, cancelLaunch: false) }
         updated[index].autoQuit = enabled
         persist(updated)
     }
@@ -147,14 +143,10 @@ final class USBMonitorViewModel {
         registeredDevices = RegisteredUSBDeviceState.resolve(
             registrations: registrations, connections: devices
         )
-        if isStorageReady && isMonitoring && !isStopping {
-            automation.update(registeredDevices)
-        }
     }
 
     func stop() async {
         isStopping = true
-        await automation.stop()
         // A normal quit waits for any in-flight registration write.
         await loadTask?.value
         await saveTask?.value

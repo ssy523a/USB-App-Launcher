@@ -109,9 +109,6 @@ private struct RegistrationStatus: View {
             if let error = model.errorMessage {
                 Text(error).foregroundStyle(.red).textSelection(.enabled)
             }
-            if let warning = model.automation.warning {
-                Text(warning).foregroundStyle(.secondary).textSelection(.enabled)
-            }
             if let message = model.applicationMessage {
                 Text(message).foregroundStyle(.secondary)
             }
@@ -155,7 +152,7 @@ private struct BackgroundHelperSection: View {
                         .disabled(manager.isBusy)
                 }
             }
-            Text("Step 6A: Registering does not transfer automation from this app. A Helper that cannot acquire ownership stays inactive until restarted; automatic handoff is not implemented yet.")
+            Text("Application automation is performed only by the Background Helper. This window manages settings and displays USB connection status.")
                 .font(.caption).foregroundStyle(.secondary)
             if let message = manager.message {
                 Text(message).font(.caption).foregroundStyle(.secondary)
@@ -174,7 +171,7 @@ private struct BackgroundHelperSection: View {
             Button("Unregister", role: .destructive) { Task { await manager.unregister() } }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("USB automation may stop. macOS will unregister and stop its managed Helper. Existing USB registrations and configured applications will be left intact. This app will not automatically take over automation.")
+            Text("USB automation may stop. macOS will unregister and stop its managed Helper. Existing USB registrations and configured applications will be left intact. This app does not perform application automation.")
         }
     }
 }
