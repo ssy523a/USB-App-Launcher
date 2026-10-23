@@ -130,26 +130,51 @@ private struct RegistrationStatus: View {
 }
 
 private struct BackgroundHelperSection: View {
+    @State private var manager = HelperRegistrationManager.shared
+    @State private var confirmsUnregistration = false
+    @Environment(\.scenePhase) private var scenePhase
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Background Helper")
-                .font(.headline)
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Background Helper").font(.headline)
             Text("Automatically monitors USB devices and runs configured applications after login.")
                 .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
             HStack {
-                Label("Not Available", systemImage: "minus.circle")
-                    .foregroundStyle(.secondary)
+                Text(manager.status?.title ?? "Checking Registration…")
+                if manager.isBusy { ProgressView().controlSize(.small) }
                 Spacer()
-                Button("Register") {}
-                    .disabled(true)
-                Button("Unregister") {}
-                    .disabled(true)
+                Button("Register") { Task { await manager.register() } }
+                    .disabled(!manager.canRegister)
+                Button("Unregister") { confirmsUnregistration = true }
+                    .disabled(!manager.canUnregister)
             }
-            Text("Available in a future version")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            if let status = manager.status {
+                Text(status.guidance).font(.caption).foregroundStyle(.secondary)
+                if status == .requiresApproval {
+                    Button("Open Login Items Settings") { manager.openSettings() }
+                        .disabled(manager.isBusy)
+                }
+            }
+            Text("Step 6A: Registering does not transfer automation from this app. A Helper that cannot acquire ownership stays inactive until restarted; automatic handoff is not implemented yet.")
+                .font(.caption).foregroundStyle(.secondary)
+            if let message = manager.message {
+                Text(message).font(.caption).foregroundStyle(.secondary)
+            }
+            if let error = manager.errorMessage {
+                Text(error).font(.caption).foregroundStyle(.red).textSelection(.enabled)
+            }
         }
+        .fixedSize(horizontal: false, vertical: true)
         .padding(.top, 4)
+        .task { await manager.refresh() }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { Task { await manager.refresh() } }
+        }
+        .confirmationDialog("Unregister Background Helper?", isPresented: $confirmsUnregistration) {
+            Button("Unregister", role: .destructive) { Task { await manager.unregister() } }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("USB automation may stop. macOS will unregister and stop its managed Helper. Existing USB registrations and configured applications will be left intact. This app will not automatically take over automation.")
+        }
     }
 }

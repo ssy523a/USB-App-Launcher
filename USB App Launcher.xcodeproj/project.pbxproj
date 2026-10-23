@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7A16B651308B2FF9004FB330 /* com.ssy523a.USBAppLauncher.Helper.plist in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7A16B64F308B2EA3004FB330 /* com.ssy523a.USBAppLauncher.Helper.plist */; };
 		7AB2C77C308A1FF300119769 /* USBAppLauncherHelper in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7AB2C772308A1C4B00119769 /* USBAppLauncherHelper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 /* End PBXBuildFile section */
 
@@ -21,6 +22,14 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		7A16B650308B2FB1004FB330 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			dstPath = Contents/Library/LaunchAgents;
+			dstSubfolder = Wrapper;
+			files = (
+				7A16B651308B2FF9004FB330 /* com.ssy523a.USBAppLauncher.Helper.plist in CopyFiles */,
+			);
+		};
 		7AB2C770308A1C4B00119769 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			dstPath = /usr/share/man/man1/;
@@ -41,6 +50,7 @@
 
 /* Begin PBXFileReference section */
 		000000000000000000000120 /* USB App Launcher.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "USB App Launcher.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		7A16B64F308B2EA3004FB330 /* com.ssy523a.USBAppLauncher.Helper.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = com.ssy523a.USBAppLauncher.Helper.plist; sourceTree = "<group>"; };
 		7AB2C772308A1C4B00119769 /* USBAppLauncherHelper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = USBAppLauncherHelper; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -76,6 +86,7 @@
 			children = (
 				000000000000000000000010 /* USB App Launcher */,
 				7AB2C773308A1C4B00119769 /* USBAppLauncherHelper */,
+				7A16B64F308B2EA3004FB330 /* com.ssy523a.USBAppLauncher.Helper.plist */,
 				000000000000000000000020 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -100,6 +111,7 @@
 				000000000000000130000000 /* Frameworks */,
 				000000000000000140000000 /* Resources */,
 				7AB2C77B308A1E9A00119769 /* CopyFiles */,
+				7A16B650308B2FB1004FB330 /* CopyFiles */,
 			);
 			buildRules = (
 			);

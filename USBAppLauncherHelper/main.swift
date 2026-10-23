@@ -32,8 +32,9 @@ final class HelperLifecycle {
             signalSource.activate()
         }
         debugLog("USB App Launcher Helper started")
-        if CommandLine.arguments.contains("--automation-test") {
-            print("[Helper] Automation Test Mode requested; acquiring ownership")
+        if CommandLine.arguments.contains("--automation-service") || CommandLine.arguments.contains("--automation-test") {
+            let mode = CommandLine.arguments.contains("--automation-service") ? "Service Mode" : "Automation Test Mode"
+            print("[Helper] \(mode) requested; acquiring ownership")
             let controller = HelperAutomationController()
             self.controller = controller
             startupTask = Task { await controller.start() }
