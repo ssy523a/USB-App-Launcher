@@ -1,2 +1,11 @@
-# Release application for DMG packaging
-/USB-App-Launcher-Release/
+# macOS metadata
+.DS_Store
+._*
+__MACOSX/
+
+# Xcode user-specific files
+**/xcuserdata/
+*.xcuserstate
+
+# Distribution disk images
+/*.dmg
