@@ -9,3 +9,9 @@ __MACOSX/
 
 # Distribution disk images
 /*.dmg
+
+# Verified release artifacts — retain locally
+/USB-App-Launcher-Release/
+
+# Local disk images in any directory
+*.dmg
